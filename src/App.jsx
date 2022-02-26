@@ -10,11 +10,12 @@ const letterMap = {};
 
 export default function App() {
     const [input, setInput] = useState("A zoo");
+    const [translation, setTranslation] = useState("");
     const [isWide, setIsWide] = useState(false);
     const [showToast, setShowToast] = useState(false);
-    const [isDark, setIsDark] = useState(false);
+    const [isDark, setIsDark] = useState(true);
 
-    function translate(string) {
+    const translate = string => {
         const words = string.split(" ");
         const mapped = words
             .map(word =>
@@ -25,17 +26,41 @@ export default function App() {
             )
             .join(`${isWide ? "\\" : "="}`);
 
-        return mapped;
-    }
+        setTranslation(mapped);
+    };
+
+    const handleInputChange = e => {
+        setInput(e.target.value);
+    };
+
+    const handleCopy = () => {
+        if (navigator?.clipboard?.writeText) {
+            navigator.clipboard.writeText(translation);
+            handleShowToast();
+        } else {
+            const temp = document.createElement("input");
+            document.body.appendChild(temp);
+            temp.value = translation;
+            temp.select();
+            temp.setSelectionRange(0, 10000);
+            document.execCommand("copy");
+            document.body.removeChild(temp);
+            handleShowToast();
+        }
+    };
+
+    const handleShowToast = () => {
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+    };
+
+    useEffect(() => {
+        translate(input);
+    }, [input, isWide]);
 
     useEffect(() => {
         document.body.className = isDark ? "bg-dark text-secondary" : "bg-light text-dark";
     }, [isDark]);
-
-    function toaster() {
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-    }
 
     return (
         <div className="container">
@@ -54,23 +79,18 @@ export default function App() {
 
             <div className="row my-2 justify-content-center">
                 <form>
-                    <textarea className={`shadow-lg form-control ${isDark ? "bg-secondary text-light" : "bg-white"}`} value={input} onChange={e => setInput(e.target.value)} rows="6"></textarea>
+                    <textarea className={`shadow-lg form-control ${isDark ? "bg-secondary text-light" : "bg-white"}`} value={input} onChange={handleInputChange} rows="6"></textarea>
                 </form>
             </div>
-
+            {!input && <h2 className="text-center">Type in something to get the LONG ALPHABET translation</h2>}
             {input && (
                 <div className="row justify-content-center text-center">
                     <div className="row justify-content-center">
                         <button onClick={() => setInput("It's reset!")} className={`col-11 col-sm-4 m-2 btn ${isDark ? "btn-outline-warning" : "btn-dark"}`}>
                             Reset Input
                         </button>
-                        <button
-                            onClick={() => {
-                                navigator.clipboard.writeText(translate(input));
-                                toaster();
-                            }}
-                            className={`col-11 col-sm-4 m-2 btn ${isDark ? "btn-outline-warning" : "btn-dark"}`}>
-                            Copy to clipboard? (may not work on mobile)
+                        <button onClick={handleCopy} className={`col-11 col-sm-4 m-2 btn ${isDark ? "btn-outline-warning" : "btn-dark"}`}>
+                            Copy to clipboard?
                         </button>
                     </div>
                     {showToast && (
@@ -80,16 +100,14 @@ export default function App() {
                     )}
                     <h2>The input of "{input}" now becomes:</h2>
                     {isWide ? (
-                        <h3>{translate(input)}</h3>
+                        <h3>{translation}</h3>
                     ) : (
                         <>
-                            {translate(input)
-                                .split("")
-                                .map((c, i) => (
-                                    <h3 key={`char-h3-${i}`} style={{ marginBottom: "-0.5rem" }}>
-                                        {c}
-                                    </h3>
-                                ))}
+                            {translation.split("").map((c, i) => (
+                                <h3 key={`char-h3-${i}`} style={{ marginBottom: "-0.5rem" }}>
+                                    {c}
+                                </h3>
+                            ))}
                         </>
                     )}
                 </div>
