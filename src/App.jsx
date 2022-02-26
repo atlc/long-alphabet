@@ -70,7 +70,7 @@ export default function App() {
                                 toaster();
                             }}
                             className={`col-11 col-sm-4 m-2 btn ${isDark ? "btn-outline-warning" : "btn-dark"}`}>
-                            Copy to clipboard?
+                            Copy to clipboard? (may not work on mobile)
                         </button>
                     </div>
                     {showToast && (
